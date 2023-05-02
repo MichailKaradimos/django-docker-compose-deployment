@@ -9,7 +9,7 @@ COPY ./requirements.txt /requirements.txt
 # The same for the app
 COPY ./app /app
 
-# COPY ./scripts /scripts
+COPY ./scripts /scripts
 
 # Sets /app as our working directory when running commands from the Docker image.
 WORKDIR /app
@@ -25,7 +25,7 @@ RUN python -m venv /py && \
     # 
     apk add --update --no-cache --virtual .tmp-deps \
     # all dependencies needed to install the driver using pip.
-        build-base postgresql-dev musl-dev && \
+    build-base postgresql-dev musl-dev linux-headers && \
     /py/bin/pip install -r /requirements.txt && \
     # This removes the temporary dependencies installed in step 2. 
     # This is done to reduce the image size by removing unnecessary packages and to improve security by removing packages that are no longer needed.
@@ -34,15 +34,18 @@ RUN python -m venv /py && \
     mkdir -p /vol/web/static && \
     mkdir -p /vol/web/media && \
     chown -R app:app /vol && \
-    chmod -R 755 /vol
+    chmod -R 755 /vol && \
+    chmod -R +x /scripts
    
 
 
 # This line sets the PATH environment variable to include the directory /py/bin, which is where the Python virtual environment and its packages are installed
-ENV PATH="/py/bin:$PATH"
+ENV PATH="/scripts:/py/bin:$PATH"
 
 USER app
 
 
 # This line specifies the default command to run when the Docker container is started
 # CMD ["run.sh"]
+
+CMD ["run.sh"]
